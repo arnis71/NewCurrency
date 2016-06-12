@@ -2,81 +2,58 @@ package ru.arnis.newcurrency;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import ru.arnis.newcurrency.Retrofit.Main;
 import ru.arnis.newcurrency.Retrofit.Results;
+import ru.arnis.newcurrency.Retrofit.AskForData;
 
 public class MainActivity extends AppCompatActivity {
 
-    Map<String, Double> Rates = new HashMap<>();
-
-
-    private ListView lv;
-    ArrayList<String> listItems = new ArrayList<>();
+    //Map<String, Double> rates = new HashMap<>();
     private Button button1;
-    private TextView text;
-    private int count = 0;
     private ListView list;
-    List<Double> test;
-    int pushtest;
+    Results exec;
+    //Rates rates;
+    //AskForData retro;
+    MyAdapter adapter;
+    AskForData data;
+    Rates rates;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-       // listItems.addAll(Rates.entrySet());
-
-        doThis();
-
         button1 = (Button) findViewById(R.id.button1);
-        text = (TextView) findViewById(R.id.text);
         list = (ListView) findViewById(R.id.list);
 
-        Map<String,Double> ex = new HashMap<>();
-        ex.put("EURUSD",1.2);
-        ex.put("USDRUB",66.3);
-      //  while (Rates.size()==0)
-            test = new ArrayList<>(ex.values());
+        data = new AskForData("USDRUB");
+        rates = new Rates(data);
+
+//        adapter = new MyAdapter(this, null);
+//        list.setAdapter(adapter);
 
 
-        ArrayAdapter adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,test);
-        list.setAdapter(adapter);
-
-        button1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                text.setText(Rates.get("USDRUB").toString());
-            }
-        });
-
-    }
 
 
-    public void doThis() {
-        Call<Results> call = Main.pullAPI().getList(Main.requestURL);
-
-        call.enqueue(new Callback<Results>() {
+        data.getCall().enqueue(new Callback<Results>() {
             @Override
             public void onResponse(Call<Results> call, Response<Results> response) {
-                Rates.put(response.body().rate.get(0).id, response.body().rate.get(0).Rate);
-                Rates.put(response.body().rate.get(1).id, response.body().rate.get(1).Rate);
-
+             //   rates.updateRates(response.body());
+//                rates.put(response.body().rate.get(0).id, response.body().rate.get(0).Rate);
+//                rates.put(response.body().rate.get(1).id, response.body().rate.get(1).Rate);
+//
+              // Log.d("happy", "onResponse: " + rates.get("USDRUB"));
             }
 
             @Override
@@ -85,5 +62,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    Response<Results> a = data.getCall().execute();
+//                    int i=10+10;
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//        }).start();
+
+
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                adapter.notifyDataSetChanged();
+            }
+        });
+
     }
-}
+
+
+
+    }
+
