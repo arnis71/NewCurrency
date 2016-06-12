@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private int count = 0;
     private ListView list;
     List<Double> test;
+    int pushtest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
