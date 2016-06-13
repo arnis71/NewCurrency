@@ -2,35 +2,53 @@ package ru.arnis.newcurrency;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import ru.arnis.newcurrency.Retrofit.AskForData;
-import ru.arnis.newcurrency.Retrofit.Results;
+import ru.arnis.newcurrency.Retrofit.Rate;
 
 /**
  * Created by arnis on 12.06.2016.
  */
 public class Rates {
-    Map<String, Double> rates;
-    AskForData data;
 
-    public Rates(AskForData data) {
-        this.rates = new HashMap<>();
-        this.data=data;
-        rates.put("default",0.0);
+    public Rates() {
+        this.ratesMap = new LinkedHashMap<>();
+        //ratesMap.put("default",0.0);
     }
 
-    public Double get(String key){
-       return rates.get(key);
+    private Map<String, Double> ratesMap;
+
+    OnRateUpdatedListener mOnRateUpdatedListener;
+    public void setOnRateUpdatedListener(OnRateUpdatedListener listener){
+        mOnRateUpdatedListener=listener;
     }
 
-    public void updateRates(Results body){
-        //call api here and pull info from server
-        rates.put(body.rate.get(0).id, body.rate.get(0).Rate);
-        rates.put(body.rate.get(1).id, body.rate.get(1).Rate);
+    public Map<String, Double> getMap() {
+        return ratesMap;
+    }
+    public Set<Map.Entry<String, Double>> getMapEntry(){
+        return ratesMap.entrySet();
+    }
 
-        Log.d("happy", "updateRates: " + body.rate.get(0).Rate);
+    public Double getByKey(String key){
+       return ratesMap.get(key);
+    }
+//    public Double getByPos(int pos){
+//        Collection<Double> a = ratesMap.values();
+//    }
+    public void updateRates(List<Rate> list){
+        for (Rate r: list){
+            ratesMap.put(r.id,r.Rate);
+            Log.d("happy", "updateRates: "+ r.id+ " "+r.Rate);
+        }
+        mOnRateUpdatedListener.onUpdate();
 
     }
 }

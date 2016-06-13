@@ -8,9 +8,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.Map;
-import java.util.zip.Inflater;
-
 /**
  * Created by arnis on 12.06.2016.
  */
@@ -25,12 +22,12 @@ public class MyAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return 2;
+        return rates.getMap().size();
     }
 
     @Override
     public Object getItem(int position) {
-        return null;
+        return position;
     }
 
     @Override
@@ -46,9 +43,10 @@ public class MyAdapter extends BaseAdapter {
         TextView rate = (TextView) convertView.findViewById(R.id.currency_rate);
         ImageView icon = (ImageView) convertView.findViewById(R.id.currency_icon);
 
-        if (rates.get("USDRUB")!=null)
-            rate.setText(Double.toString(rates.get("USDRUB")));
-        else rate.setText(Double.toString(rates.get("default")));
+       // if (rates.getByKey("USDRUB")!=null)
+            rate.setText(Double.toString(rates.getByKey("USDRUB")));
+            //rate.setText(Double.toString(rates.getByPos(position)));
+        //else rate.setText(Double.toString(rates.getByKey("default")));
 
         icon.setImageResource(R.mipmap.dollar);
 

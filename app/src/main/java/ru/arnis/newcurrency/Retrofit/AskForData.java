@@ -47,6 +47,8 @@ public class AskForData {
 
         requestURL = line1 + CURRENCY + line2;
 
+        call = api.getList(requestURL);
+
         return call;
     }
 }
