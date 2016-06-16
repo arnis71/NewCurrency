@@ -19,36 +19,40 @@ import ru.arnis.newcurrency.Retrofit.Rate;
 public class Rates {
 
     public Rates() {
-        this.ratesMap = new LinkedHashMap<>();
-        //ratesMap.put("default",0.0);
+        this.data = new ArrayList<>();
     }
 
-    private Map<String, Double> ratesMap;
+
+    public ArrayList<Rate> getData() {
+        return data;
+    }
+
+    private ArrayList<Rate> data;
 
     OnRateUpdatedListener mOnRateUpdatedListener;
     public void setOnRateUpdatedListener(OnRateUpdatedListener listener){
         mOnRateUpdatedListener=listener;
     }
 
-    public Map<String, Double> getMap() {
-        return ratesMap;
-    }
-    public Set<Map.Entry<String, Double>> getMapEntry(){
-        return ratesMap.entrySet();
-    }
-
-    public Double getByKey(String key){
-       return ratesMap.get(key);
-    }
-//    public Double getByPos(int pos){
-//        Collection<Double> a = ratesMap.values();
+//    public Map<String, Double> getMap() {
+//        return ratesMap;
 //    }
+//    public Set<Map.Entry<String, Double>> getMapEntry(){
+//        return ratesMap.entrySet();
+//    }
+//
+//    public Double getByKey(String key){
+//       return ratesMap.get(key);
+//    }
+
     public void updateRates(List<Rate> list){
-        for (Rate r: list){
-            ratesMap.put(r.id,r.Rate);
-            Log.d("happy", "updateRates: "+ r.id+ " "+r.Rate);
-        }
+//        for (Rate r: list){
+//            ratesMap.put(r.id,r.Rate);
+//            Log.d("happy", "updateRates: "+ r.id+ " "+r.Rate);
+//        }
+        data= (ArrayList<Rate>) list;
         mOnRateUpdatedListener.onUpdate();
 
     }
+
 }

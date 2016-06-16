@@ -5,6 +5,8 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.ArrayList;
+
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -17,15 +19,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class AskForData {
 
     final String baseURL = "https://query.yahooapis.com/v1/public/";
-    final String line1 = "yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22EURUSD,";
-    public String CURRENCY;// = "USDRUB"; // temporary
+    final String line1 = "yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22";
+    public String CURRENCY="EURUSD";//no semicolon!!!!!
     final String line2 = "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
     public String requestURL;
 
     Call<Results> call;
 
-    public AskForData(String CURRENCY) {
-        this.CURRENCY=CURRENCY;
+    public void addCurrency(String str){
+        if (!this.CURRENCY.contains(str)) {
+            this.CURRENCY = this.CURRENCY + "," + str;
+        }
     }
 
 
@@ -50,6 +54,12 @@ public class AskForData {
         call = api.getList(requestURL);
 
         return call;
+    }
+
+    public void remove(String id) {
+        if (CURRENCY.contains(id)){
+            CURRENCY.replaceAll(id,"");
+        }
     }
 }
 

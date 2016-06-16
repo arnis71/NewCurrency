@@ -1,10 +1,16 @@
 package ru.arnis.newcurrency;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -14,14 +20,19 @@ import com.squareup.leakcanary.RefWatcher;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import ru.arnis.newcurrency.Retrofit.Rate;
 import ru.arnis.newcurrency.Retrofit.Results;
 import ru.arnis.newcurrency.Retrofit.AskForData;
+import ru.arnis.newcurrency.swipe.SwipeToDismissTouchListener;
+import ru.arnis.newcurrency.swipe.adapter.ListViewAdapter;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private Button button1;
     private ListView list;
@@ -30,26 +41,42 @@ public class MainActivity extends AppCompatActivity {
     Rates rates;
     SharedPreferences storage;
     Context context;
-    private ArrayList<String> currencyOrder;
+    private FloatingActionButton fab;
+    private SwipeRefreshLayout refresh;
+    SwipeToDismissTouchListener<ListViewAdapter> touchListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        //----------------------------leak canary--------------------------
-        RefWatcher watcher = LeakCanary.install(getApplication());
-       // watcher.watch(this);
-
-        //------------------------------------------------------------------
-
-
-        button1 = (Button) findViewById(R.id.button1);
-        list = (ListView) findViewById(R.id.list);
-
-        data = new AskForData("USDRUB");
         rates = new Rates();
+        storage = getSharedPreferences("Rates", Context.MODE_PRIVATE);
+        Map<String, ?> temp = storage.getAll();
+        for (Map.Entry<String,?> entry: temp.entrySet()){
+            Rate r = Rate.assignValuesFromString(entry.getKey());
+            r.Rate=Double.longBitsToDouble((Long)entry.getValue());
+            rates.getData().add(r);
+        }
+
+        data = new AskForData();
+        for (Rate r:rates.getData())
+            data.addCurrency(r.id);
+
+
+
+        refresh = (SwipeRefreshLayout)findViewById(R.id.refresher);
+        list = (ListView) findViewById(R.id.list);
+        fab = (FloatingActionButton)findViewById(R.id.fab);
+
+
+
+
+        if (getIntent().getExtras()!=null) {
+            data.addCurrency(getIntent().getExtras().getString("currency"));
+            pullData();
+        }
+
 
         adapter = new MyAdapter(this, rates);
         list.setAdapter(adapter);
@@ -58,11 +85,21 @@ public class MainActivity extends AppCompatActivity {
         context=this;
         pullData();
 
+        refresh.setOnRefreshListener(this);
+
+        refresh.post(new Runnable() {
+            @Override
+            public void run() {
+                refresh.setRefreshing(true);
+                pullData();
+            }
+        });
 
         rates.setOnRateUpdatedListener(new OnRateUpdatedListener() {
             @Override
             public void onUpdate() {
                 adapter.notifyDataSetChanged();
+                refresh.setRefreshing(false);
             }
         });
 
@@ -79,10 +116,45 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        }).start();
 
-        button1.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pullData();
+                startActivity(new Intent(v.getContext(),AddMenu.class));
+            }
+        });
+
+        touchListener =
+                new SwipeToDismissTouchListener<>(
+                        new ListViewAdapter(list),
+                        new SwipeToDismissTouchListener.DismissCallbacks<ListViewAdapter>() {
+                            @Override
+                            public boolean canDismiss(int position) {
+                                return true;
+                            }
+
+                            @Override
+                            public void onPendingDismiss(ListViewAdapter recyclerView, int position) {
+                                Log.d("happy", "onPendingDismiss: ");
+                            }
+
+                            @Override
+                            public void onDismiss(ListViewAdapter view, int position) {
+                                adapter.remove(position);
+                                //delete from queue
+                               // data.remove(rates.getData().get(position).id);
+                            }
+                        });
+        touchListener.setDismissDelay(1000);
+        list.setOnTouchListener(touchListener);
+        list.setOnScrollListener((AbsListView.OnScrollListener) touchListener.makeScrollListener());
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (touchListener.existPendingDismisses()) {
+                    touchListener.undoPendingDismiss();
+                } else {
+                    Toast.makeText(MainActivity.this, "Position " + position, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -91,33 +163,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
         storage = getSharedPreferences("Rates", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = storage.edit();
-        for (Map.Entry<String,Double> entry:rates.getMapEntry()){
-            editor.putLong(entry.getKey(),Double.doubleToRawLongBits(entry.getValue()));
-        }
+        editor.clear();
+        for (Rate r : rates.getData())
+            editor.putLong(r.id+"_"+r.Time+"_"+r.Date,Double.doubleToRawLongBits(r.Rate));
+
         editor.apply();
 
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        storage = getSharedPreferences("Rates", Context.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = storage.edit();
-//        editor.remove("default");
-//        editor.apply();
-        Map<String, ?> temp = storage.getAll();
-        for (Map.Entry<String,?> entry: temp.entrySet()){
-            rates.getMap().put(entry.getKey(),Double.longBitsToDouble((Long)entry.getValue()));
-
-        }
-    }
 
     private void pullData(){
         data.getCall().enqueue(new Callback<Results>() {
@@ -131,6 +186,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(context, "Data pull error", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onRefresh() {
+        Log.d("happy", "onRefresh: ");
+        pullData();
     }
 }
 
