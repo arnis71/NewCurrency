@@ -6,13 +6,15 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
+import com.woxthebox.draglistview.DragListView;
+
 import ru.arnis.newcurrency.swipe.adapter.ViewAdapter;
 
 public class ListViewAdapter implements ViewAdapter {
 
-    private final ListView mListView;
+    private final DragListView mListView;
 
-    public ListViewAdapter(ListView listView) {
+    public ListViewAdapter(DragListView listView) {
         mListView = listView;
     }
 
@@ -43,7 +45,7 @@ public class ListViewAdapter implements ViewAdapter {
 
     @Override
     public int getChildPosition(View child) {
-        return mListView.getPositionForView(child);
+        return 0;
     }
 
     @Override

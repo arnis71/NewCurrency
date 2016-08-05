@@ -11,7 +11,10 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+
 import java.util.ArrayList;
+
+import ru.arnis.newcurrency.Retrofit.Rate;
 
 /**
  * Created by arnis on 12.06.2016.
@@ -19,7 +22,6 @@ import java.util.ArrayList;
 public class MyAdapter extends BaseAdapter {
     Context context;
     Rates rates;
-    GestureDetector gd;
 
     public MyAdapter(Context context, Rates rates) {
         this.context=context;
@@ -40,7 +42,7 @@ public class MyAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        return null;
+        return rates.getData().get(position);
     }
 
     @Override
@@ -48,9 +50,12 @@ public class MyAdapter extends BaseAdapter {
         return position;
     }
 
-    public void remove(int position) {
-        rates.getData().remove(position);
+    @Override
+    public boolean hasStableIds() {
+        return true;
     }
+
+
 
     private static class ViewHolder {
         public final TextView rate;
@@ -90,14 +95,13 @@ public class MyAdapter extends BaseAdapter {
 
         }
 
-
+        //Log.d("happy", "getView: "+rates.getData().get(position).id);
         name.setText(rates.getData().get(position).id);
         rate.setText(Double.toString(rates.getData().get(position).Rate));
         String str=rates.getData().get(position).Time+" "+rates.getData().get(position).Date;
         time.setText(str);
 
-    assignBitmap(icon,position);
-
+        assignBitmap(icon,0);
         return convertView;
     }
 }

@@ -17,9 +17,11 @@ import ru.arnis.newcurrency.Retrofit.Rate;
  * Created by arnis on 12.06.2016.
  */
 public class Rates {
+    AskForData askForData;
 
-    public Rates() {
+    public Rates(AskForData askForData) {
         this.data = new ArrayList<>();
+        this.askForData=askForData;
     }
 
 
@@ -34,25 +36,40 @@ public class Rates {
         mOnRateUpdatedListener=listener;
     }
 
-//    public Map<String, Double> getMap() {
-//        return ratesMap;
-//    }
-//    public Set<Map.Entry<String, Double>> getMapEntry(){
-//        return ratesMap.entrySet();
-//    }
-//
-//    public Double getByKey(String key){
-//       return ratesMap.get(key);
-//    }
+    public void remove(int position){
+        String id = data.get(position).id;
+        data.remove(position);
+        String CURRENCY = askForData.getCURRENCY();
+        String case1 = id+",";
+        String case2 = ","+id;
+        if (CURRENCY.contains(case1)){
+            askForData.setCURRENCY(CURRENCY.replaceAll(case1,""));
+        }
+        if (CURRENCY.contains(case2)){
+            askForData.setCURRENCY(CURRENCY.replaceAll(case2,""));
+        }
 
+    }
+    public void addToCall(String currency){
+        if (!askForData.getCURRENCY().contains(currency)) {
+            askForData.updateCURRENCY(currency);
+        }
+    }
+
+    public void addToData(Rate rate){
+        data.add(rate);
+        addToCall(rate.id);
+    }
     public void updateRates(List<Rate> list){
-//        for (Rate r: list){
-//            ratesMap.put(r.id,r.Rate);
-//            Log.d("happy", "updateRates: "+ r.id+ " "+r.Rate);
-//        }
         data= (ArrayList<Rate>) list;
         mOnRateUpdatedListener.onUpdate();
 
     }
 
+    public void swap(int positionOne, int positionTwo) {
+        Rate buf = data.get(positionOne);
+        data.set(positionOne,data.get(positionTwo));
+        data.set(positionTwo,buf);
+        buf=null;
+    }
 }

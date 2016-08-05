@@ -18,20 +18,26 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class AskForData {
 
-    final String baseURL = "https://query.yahooapis.com/v1/public/";
-    final String line1 = "yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22";
-    public String CURRENCY="EURUSD";//no semicolon!!!!!
-    final String line2 = "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
-    public String requestURL;
+    private final String baseURL = "https://query.yahooapis.com/v1/public/";
+    private final String line1 = "yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22";
 
-    Call<Results> call;
-
-    public void addCurrency(String str){
-        if (!this.CURRENCY.contains(str)) {
-            this.CURRENCY = this.CURRENCY + "," + str;
-        }
+    public String getCURRENCY() {
+        return CURRENCY;
     }
 
+    public void updateCURRENCY(String curr) {
+        this.CURRENCY = this.CURRENCY+ "," + curr;
+    }
+
+    public void setCURRENCY(String CURRENCY) {
+        this.CURRENCY = CURRENCY;
+    }
+
+    private String CURRENCY="EURRUB,USDRUB";//no semicolon!!!!!
+    private final String line2 = "%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=";
+    private String requestURL;
+
+    Call<Results> call;
 
     public Call<Results> getCall() {
         OkHttpClient client = new OkHttpClient.Builder()
@@ -56,10 +62,5 @@ public class AskForData {
         return call;
     }
 
-    public void remove(String id) {
-        if (CURRENCY.contains(id)){
-            CURRENCY.replaceAll(id,"");
-        }
-    }
 }
 
